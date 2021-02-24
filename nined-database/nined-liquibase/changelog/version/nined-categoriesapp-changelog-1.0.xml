@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+	<property name="autoIncrement" value="true" dbms="mysql" />
+	<property name="autoIncrement" value="true" dbms="h2" />
+	<property name="autoIncrement" value="false" dbms="oracle" />
+	<property name="now" value="SYSTIMESTAMP" dbms="oracle" />
+	<property name="now" value="CURRENT_TIMESTAMP" dbms="mysql" />
+	<property name="nowUnixTimestamp" value="unix_timestamp()" dbms="mysql" />
+	<property name="now" value="CURRENT_TIMESTAMP" dbms="h2" />
+
+	<changeSet id="1.2.1" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="CATALOG" />
+			</not>
+		</preConditions>
+		<createTable tableName="CATALOG" remarks="Table for Catalog entity">
+			<column name="CATALOG_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_CATALOG" nullable="false" />
+			</column>
+			<column name="IDENTIFIER" type="VARCHAR(128)" remarks="Identifier for the Catalog">
+				<constraints nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(512)" remarks="An administrative description of the catalog.">
+				<constraints nullable="true" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>			
+		</createTable>
+		<addUniqueConstraint columnNames="CATALOG_ID,IDENTIFIER" constraintName="UK_CATALOG" tableName="CATALOG" />		
+	</changeSet>
+	<changeSet id="1.2.2" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="CATALOG_DSC" />
+			</not>
+		</preConditions>
+		<createTable tableName="CATALOG_DSC" remarks="Table to persist catalog description to be displayed">
+			<column name="CATALOG_DSC_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_CATALOG_DSC" nullable="false" />
+			</column>
+			<column name="CATALOG_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_CD_CATALOG_ID" references="CATALOG(CATALOG_ID)" deleteCascade="true"/>
+			</column>
+			<column name="LANGUAGE_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_CD_LANGUAGE_ID" references="LANGUAGE(LANGUAGE_ID)" deleteCascade="true"/>
+			</column>
+			<column name="NAME" type="VARCHAR(254)">
+				<constraints nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="CATALOG_ID,LANGUAGE_ID" constraintName="UK_CATALOG_DSC" tableName="CATALOG_DSC" />		
+	</changeSet>
+	<changeSet id="1.2.3" author="Vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="STORE_CATALOG" />
+			</not>
+		</preConditions>
+		<createTable tableName="STORE_CATALOG" remarks="Table to store all the privileges supported in the application">
+			<column name="STORE_CATALOG_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_STORE_CATALOG" nullable="false" />
+			</column>
+			<column name="STORE_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_SC_STORE_ID" references="STORE(STORE_ID)" deleteCascade="true"/>
+			</column>
+			<column name="CATALOG_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_SC_CATALOG_ID" references="CATALOG(CATALOG_ID)" deleteCascade="true"/>
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="STORE_ID,CATALOG_ID" constraintName="UK_STORE_CATALOG" tableName="STORE_CATALOG" />				
+	</changeSet>
+	<changeSet id="1.2.4" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="CATEGORY" />
+			</not>
+		</preConditions>
+		<createTable tableName="CATEGORY" remarks="Table to persist Category information">
+			<column name="CATEGORY_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_CATEGORY" nullable="false" />
+			</column>
+			<column name="IDENTIFIER" type="VARCHAR(128)" remarks="Identifier for the Category">
+				<constraints nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(512)" remarks="An administrative description of the Category">
+				<constraints nullable="true" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>			
+		</createTable>
+		<addUniqueConstraint columnNames="CATEGORY_ID,IDENTIFIER" constraintName="UK_CATEGORY" tableName="CATEGORY" />		
+	</changeSet>
+	<changeSet id="1.2.5" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="CATEGORY_DSC" />
+			</not>
+		</preConditions>
+		<createTable tableName="CATEGORY_DSC" remarks="Table to persist category description to be displayed">
+			<column name="CATEGORY_DSC_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_CATEGORY_DSC" nullable="false" />
+			</column>
+			<column name="CATEGORY_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_CYD_CATEGORY_ID" references="CATEGORY(CATEGORY_ID)" deleteCascade="true"/>
+			</column>
+			<column name="LANGUAGE_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_CYD_LANGUAGE_ID" references="LANGUAGE(LANGUAGE_ID)" deleteCascade="true"/>
+			</column>
+			<column name="NAME" type="VARCHAR(254)">
+				<constraints nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="CATEGORY_ID,LANGUAGE_ID" constraintName="UK_CATEGORY_DSC" tableName="CATEGORY_DSC" />		
+	</changeSet>
+	<changeSet id="1.2.6" author="Vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="CATEGORY_REL" />
+			</not>
+		</preConditions>
+		<createTable tableName="CATEGORY_REL" remarks="Table to store all relationship of Category data like L1, L2, L3">
+			<column name="CATEGORY_REL_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_CATEGORY_REL" nullable="false" />
+			</column>
+			<column name="CATEGORY_ID_PARENT" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_CR_CATEGORY_ID_PARENT" references="CATEGORY(CATEGORY_ID)" deleteCascade="true"/>
+			</column>
+			<column name="CATEGORY_ID_CHILD" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_CR_CATEGORY_ID_CHILD" references="CATEGORY(CATEGORY_ID)" deleteCascade="true"/>
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="CATEGORY_ID_PARENT,CATEGORY_ID_CHILD" constraintName="UK_CATEGORY_REL" tableName="CATEGORY_REL" />				
+	</changeSet>
+	<changeSet id="1.2.7" author="vijay">
+		<sql>
+			GRANT ALL ON CATALOG TO 'userapp';			
+			GRANT ALL ON CATALOG_DSC TO 'userapp';
+			GRANT ALL ON STORE_CATALOG TO 'userapp';			
+			GRANT ALL ON CATEGORY TO 'userapp';
+			GRANT ALL ON CATEGORY_DSC TO 'userapp';			
+			GRANT ALL ON CATEGORY_REL TO 'userapp';
+		</sql>
+		<rollback>
+			REVOKE ALL ON CATALOG TO 'userapp';			
+			REVOKE ALL ON CATALOG_DSC TO 'userapp';
+			REVOKE ALL ON STORE_CATALOG TO 'userapp';			
+			REVOKE ALL ON CATEGORY TO 'userapp';
+			REVOKE ALL ON CATEGORY_DSC TO 'userapp';			
+			REVOKE ALL ON CATEGORY_REL TO 'userapp';
+		</rollback>
+	</changeSet>
+	<changeSet id="1.2.8" author="vijay">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(1) from CATALOG</sqlCheck>
+        </preConditions>
+		<insert tableName="CATALOG">
+			<column name="IDENTIFIER" value="NINED_SALES_CATALOG"/>
+			<column name="DESCRIPTION" value="NineD Sales Catalog"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<rollback>
+            <delete tableName="CATALOG"/>
+        </rollback>
+    </changeSet>	
+	<changeSet id="1.2.9" author="vijay">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(1) from STORE_CATALOG</sqlCheck>
+        </preConditions>
+		<insert tableName="STORE_CATALOG">
+			<column name="STORE_ID" valueComputed="(select STORE_ID from STORE where IDENTIFIER = 'NINED')"/>
+			<column name="CATALOG_ID" valueComputed="(select CATALOG_ID from CATALOG where IDENTIFIER = 'NINED_SALES_CATALOG')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<rollback>
+            <delete tableName="STORE_CATALOG"/>
+        </rollback>
+    </changeSet>	
+</databaseChangeLog>

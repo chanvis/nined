@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+	<property name="autoIncrement" value="true" dbms="mysql" />
+	<property name="autoIncrement" value="true" dbms="h2" />
+	<property name="autoIncrement" value="false" dbms="oracle" />
+	<property name="now" value="SYSTIMESTAMP" dbms="oracle" />
+	<property name="now" value="CURRENT_TIMESTAMP" dbms="mysql" />
+	<property name="nowUnixTimestamp" value="unix_timestamp()" dbms="mysql" />
+	<property name="now" value="CURRENT_TIMESTAMP" dbms="h2" />
+
+	<changeSet id="1.1" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="STORE" />
+			</not>
+		</preConditions>
+		<createTable tableName="STORE" remarks="Table for Store entity">
+			<column name="STORE_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_CARRIER" nullable="false" />
+			</column>
+			<column name="TYPE" type="VARCHAR(128)" remarks="Type of Store Valid values are as follows: G = StoreGroup S = Store">
+				<constraints nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(512)">
+				<constraints nullable="true" />
+			</column>
+			<column name="SETCCURR" type="VARCHAR(32)" defaultValueNumeric="1">
+				<constraints nullable="false" />
+			</column>
+			<column name="IDENTIFIER" type="VARCHAR(32)" remarks="A string to uniquely identify the Store Entity">
+				<constraints nullable="false" />
+			</column>
+			<column name="ACTIVE" type="TINYINT"  defaultValueNumeric="1">
+				<constraints nullable="false" />
+			</column>
+			<column name="ENABLE_2FA" type="BIGINT">
+				<constraints nullable="true" />
+			</column>			
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="STORE_ID,IDENTIFIER" constraintName="UK_STORE" tableName="STORE" />		
+	</changeSet>
+	
+	<changeSet id="1.2" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ROLE" />
+			</not>
+		</preConditions>
+		<createTable tableName="ROLE" remarks="Table to store all the roles supported in the application">
+			<column name="ROLE_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ROLE" nullable="false" />
+			</column>
+			<column name="STORE_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_RO_STORE_ID" references="STORE(STORE_ID)" deleteCascade="true"/>
+			</column>
+			<column name="NAME" type="VARCHAR(254)">
+				<constraints nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>
+			<column name="ACTIVE" type="TINYINT" defaultValueNumeric="1">
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="STORE_ID,NAME" constraintName="UK_ROLE" tableName="ROLE" />		
+	</changeSet>
+	
+	<changeSet id="1.3" author="Vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="PRIVILEGE" />
+			</not>
+		</preConditions>
+		<createTable tableName="PRIVILEGE" remarks="Table to store all the privileges supported in the application">
+			<column name="PRIVILEGE_ID" type="BIGINT">
+				<constraints primaryKey="true" primaryKeyName="PK_PRIVILEGE" nullable="false" />
+			</column>
+			<column name="STORE_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_PR_STORE_ID" references="STORE(STORE_ID)" deleteCascade="true"/>
+			</column>
+			<column name="NAME" type="VARCHAR(254)">
+				<constraints unique="true" uniqueConstraintName="UK_PRIVILEGE" nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>
+			<column name="DEFAULT_PRIV" type="TINYINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	
+	<changeSet id="1.4" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ROLE_PRIVILEGE" />
+			</not>
+		</preConditions>
+		<createTable tableName="ROLE_PRIVILEGE" remarks="Table to store role to privilege mapping">
+			<column name="ROLE_PRIVILEGE_ID" type="INT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ROLE_PRIVILEGE" nullable="false" />
+			</column>
+			<column name="ROLE_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_RP_ROLE_ID" references="ROLE(ROLE_ID)" deleteCascade="true" />
+			</column>
+			<column name="PRIVILEGE_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_RP_PRIVILEGE_ID" references="PRIVILEGE(PRIVILEGE_ID)" deleteCascade="true" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	
+	<changeSet id="1.5" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="LANGUAGE" />
+			</not>
+		</preConditions>
+		<createTable tableName="LANGUAGE" remarks="Table to store all the languages supported in the application">
+			<column name="LANGUAGE_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_LANGUAGE" nullable="false" />
+			</column>
+			<column name="NAME" type="VARCHAR(20)">
+				<constraints nullable="false" />
+			</column>
+			<column name="COUNTRY" type="VARCHAR(5)">
+				<constraints nullable="false" />
+			</column>
+			<column name="LOCALE" type="VARCHAR(20)">
+				<constraints unique="true" uniqueConstraintName="UK_LANGUAGE" nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	
+	<changeSet id="1.6" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="USER_ACCOUNT" />
+			</not>
+		</preConditions>
+		<createTable tableName="USER_ACCOUNT" remarks="Table to store user account details">
+			<column name="USER_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_USER_ACCOUNT" nullable="false" />
+			</column>
+			<column name="LOGONID" type="VARCHAR(254)" remarks="User login id">
+				<constraints unique="true" uniqueConstraintName="UK_USER_ACCOUNT" nullable="false" />
+			</column>
+			<column name="ACTIVE" type="TINYINT" defaultValueNumeric="1" >
+				<constraints nullable="false" />
+			</column>
+			<column name="LANGUAGE_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_UA_LANGUAGE_ID" references="LANGUAGE(LANGUAGE_ID)" deleteCascade="true" />
+			</column>	
+			<column name="FIRSTNAME" type="VARCHAR(128)">
+				<constraints nullable="false" />
+			</column>
+			<column name="MIDDLENAME" type="VARCHAR(128)">
+				<constraints nullable="true" />
+			</column>
+			<column name="LASTNAME" type="VARCHAR(128)">
+				<constraints nullable="false" />
+			</column>
+			<column name="EMAIL" type="VARCHAR(256)">
+				<constraints nullable="false" />
+			</column>
+			<column name="PHONE" type="VARCHAR(32)">
+				<constraints nullable="false" />
+			</column>
+			<column name="LOGONPASSWORD" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="ACCT_ACTIVE" type="TINYINT" defaultValueNumeric="0" >
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>				
+	</changeSet>
+	
+	<changeSet id="1.7" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="USER_ROLE" />
+			</not>
+		</preConditions>
+		<createTable tableName="USER_ROLE" remarks="Table to store mapping of users with their assigned roles">
+			<column name="USER_ROLE_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_USER_ROLE" nullable="false" />
+			</column>
+			<column name="USER_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_UUR_SER_ID" references="USER_ACCOUNT(USER_ID)" deleteCascade="true" />
+			</column>
+			<column name="ROLE_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_UR_ROLE_ID" references="ROLE(ROLE_ID)" deleteCascade="true" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>	
+		<addUniqueConstraint columnNames="USER_ID,ROLE_ID" constraintName="UK_USER_ROLE" tableName="USER_ROLE" />			
+	</changeSet>
+
+	<changeSet id="1.8" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="PASSWORD_RESET_TOKEN" />
+			</not>
+		</preConditions>
+		<createTable tableName="PASSWORD_RESET_TOKEN" remarks="Table to store password reset tokens for users">
+			<column name="PASSWORD_RESET_TOKEN_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_PASSWORD_RESET_TOKEN" nullable="false" />
+			</column>
+			<column name="USER_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_PR_USER_ID" references="USER_ACCOUNT(USER_ID)" deleteCascade="true" />
+			</column>
+			<column name="TOKEN" type="VARCHAR(32)" remarks="UUID.randomUUID()">
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="EXPIRY_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>		
+	</changeSet>
+	
+	<changeSet id="1.9" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="USER_VERIFICATION_CODE" />
+			</not>
+		</preConditions>
+		<createTable tableName="USER_VERIFICATION_CODE" remarks="Table to store user verification codes for users">
+			<column name="USER_VERIFICATION_CODE_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_USER_VERIFICATION_CODE" nullable="false" />
+			</column>
+			<column name="USER_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_UV_USER_ID" references="USER_ACCOUNT(USER_ID)" deleteCascade="true" />
+			</column>
+			<column name="VERIFICATION_CODE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="EXPIRY_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>		
+	</changeSet>
+	
+	<changeSet id="1.10" author="vijay">
+		<sql>
+			GRANT ALL ON STORE TO 'userapp';			
+			GRANT ALL ON ROLE TO 'userapp';
+			GRANT ALL ON PRIVILEGE TO 'userapp';			
+			GRANT ALL ON ROLE_PRIVILEGE TO 'userapp';
+			GRANT ALL ON LANGUAGE TO 'userapp';			
+			GRANT ALL ON USER_ACCOUNT TO 'userapp';
+			GRANT ALL ON USER_ROLE TO 'userapp';			
+			GRANT ALL ON PASSWORD_RESET_TOKEN TO 'userapp';
+			GRANT ALL ON USER_VERIFICATION_CODE TO 'userapp';			
+		</sql>
+		<rollback>
+			REVOKE ALL ON STORE TO 'userapp';			
+			REVOKE ALL ON ROLE TO 'userapp';
+			REVOKE ALL ON PRIVILEGE TO 'userapp';			
+			REVOKE ALL ON ROLE_PRIVILEGE TO 'userapp';
+			REVOKE ALL ON LANGUAGE TO 'userapp';			
+			REVOKE ALL ON USER_ACCOUNT TO 'userapp';
+			REVOKE ALL ON USER_ROLE TO 'userapp';			
+			REVOKE ALL ON PASSWORD_RESET_TOKEN TO 'userapp';
+			REVOKE ALL ON USER_VERIFICATION_CODE TO 'userapp';			
+		</rollback>
+	</changeSet>
+
+    <changeSet id="1.11" author="vijay">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(1) from STORE</sqlCheck>
+        </preConditions>
+        <insert tableName="STORE">
+        	<column name="TYPE" value="S"/>
+        	<column name="DESCRIPTION" value="NineD Store"/>
+        	<column name="SETCCURR" value="INR"/>
+        	<column name="IDENTIFIER" value="NINED"/>
+        	<column name="ACTIVE" valueNumeric="1"/>
+			<column name="ENABLE_2FA" valueNumeric="0"/>
+        	<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        	<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        </insert>
+        <rollback>
+            <delete tableName="STORE"/>
+        </rollback>
+    </changeSet>
+	<changeSet id="1.12" author="vijay">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(1) from LANGUAGE</sqlCheck>
+        </preConditions>
+        <insert tableName="LANGUAGE">
+        	<column name="NAME" value="English"/>
+        	<column name="COUNTRY" value="India"/>
+        	<column name="LOCALE" value="en_IN"/>
+        	<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        	<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        </insert>
+        <rollback>
+            <delete tableName="LANGUAGE"/>
+        </rollback>
+    </changeSet>
+	<changeSet id="1.13" author="vijay">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(1) from ROLE</sqlCheck>
+        </preConditions>
+        <insert tableName="ROLE">
+        	<column name="NAME" value="ROLE_SUPER_ADMIN"/>
+        	<column name="DESCRIPTION" value="Super Admin"/>
+        	<column name="ACTIVE" valueNumeric="1"/>
+        	<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        	<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        </insert>
+        <insert tableName="ROLE">
+        	<column name="NAME" value="ROLE_CARRIER"/>
+        	<column name="DESCRIPTION" value="Carrier"/>
+        	<column name="ACTIVE" valueNumeric="1"/>
+        	<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        	<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        </insert>
+        <insert tableName="ROLE">
+        	<column name="NAME" value="ROLE_VENDOR"/>
+        	<column name="DESCRIPTION" value="Vendor"/>
+        	<column name="ACTIVE" valueNumeric="1"/>
+        	<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        	<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        </insert>
+        <insert tableName="ROLE">
+        	<column name="NAME" value="ROLE_ADMIN"/>
+        	<column name="DESCRIPTION" value="Admin"/>
+        	<column name="ACTIVE" valueNumeric="1"/>
+        	<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        	<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        </insert>
+        <insert tableName="ROLE">
+        	<column name="NAME" value="ROLE_USER"/>
+        	<column name="DESCRIPTION" value="Registered User"/>
+        	<column name="ACTIVE" valueNumeric="1"/>
+        	<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        	<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        </insert>
+        <insert tableName="ROLE">
+        	<column name="NAME" value="ROLE_GUEST"/>
+        	<column name="DESCRIPTION" value="Guest User"/>
+        	<column name="ACTIVE" valueNumeric="1"/>
+        	<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        	<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+        </insert>        
+        <rollback>
+            <delete tableName="ROLE"/>
+        </rollback>
+    </changeSet>	
+    <changeSet id="1.14" author="vijay">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(1) from PRIVILEGE</sqlCheck>
+        </preConditions>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="10"/>
+			<column name="NAME" value="VIEW_VENDOR"/>
+			<column name="DESCRIPTION" value="View Vendor"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="11"/>
+			<column name="NAME" value="ADD_VENDOR"/>
+			<column name="DESCRIPTION" value="Add Vendor"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="12"/>
+			<column name="NAME" value="EDIT_VENDOR"/>
+			<column name="DESCRIPTION" value="Edit Vendor"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="13"/>
+			<column name="NAME" value="DELETE_VENDOR"/>
+			<column name="DESCRIPTION" value="Delete Vendor"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="14"/>
+			<column name="NAME" value="ALL_VENDOR"/>
+			<column name="DESCRIPTION" value="All privilege on Vendor"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="15"/>
+			<column name="NAME" value="VIEW_CARRIER"/>
+			<column name="DESCRIPTION" value="View Carrier"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="16"/>
+			<column name="NAME" value="ADD_CARRIER"/>
+			<column name="DESCRIPTION" value="Add Carrier"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="17"/>
+			<column name="NAME" value="EDIT_CARRIER"/>
+			<column name="DESCRIPTION" value="Edit Carrier"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="18"/>
+			<column name="NAME" value="DELETE_CARRIER"/>
+			<column name="DESCRIPTION" value="Delete Carrier"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="19"/>
+			<column name="NAME" value="ALL_CARRIER"/>
+			<column name="DESCRIPTION" value="All privilege on Carrier"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="20"/>
+			<column name="NAME" value="VIEW_USER"/>
+			<column name="DESCRIPTION" value="View User"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="21"/>
+			<column name="NAME" value="ADD_USER"/>
+			<column name="DESCRIPTION" value="Add User"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="22"/>
+			<column name="NAME" value="EDIT_USER"/>
+			<column name="DESCRIPTION" value="Edit User"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="23"/>
+			<column name="NAME" value="DELETE_USER"/>
+			<column name="DESCRIPTION" value="Delete User"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="PRIVILEGE">
+			<column name="PRIVILEGE_ID" valueComputed="24"/>
+			<column name="NAME" value="ALL_USER"/>
+			<column name="DESCRIPTION" value="All privilege on User"/>
+			<column name="DEFAULT_PRIV" valueNumeric="0"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+			<column name="LASTUPDATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+        <rollback>
+            <delete tableName="PRIVILEGE"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="1.15" author="vijay">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(1) from ROLE_PRIVILEGE</sqlCheck>
+        </preConditions>
+		<insert tableName="ROLE_PRIVILEGE">
+			<column name="ROLE_ID" valueComputed="(select role_id from ROLE where name = 'ROLE_SUPER_ADMIN')"/>
+			<column name="PRIVILEGE_ID" valueComputed="(select privilege_id from PRIVILEGE where name = 'ALL_VENDOR')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="ROLE_PRIVILEGE">
+			<column name="ROLE_ID" valueComputed="(select role_id from ROLE where name = 'ROLE_SUPER_ADMIN')"/>
+			<column name="PRIVILEGE_ID" valueComputed="(select privilege_id from PRIVILEGE where name = 'ALL_CARRIER')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="ROLE_PRIVILEGE">
+			<column name="ROLE_ID" valueComputed="(select role_id from ROLE where name = 'ROLE_ADMIN')"/>
+			<column name="PRIVILEGE_ID" valueComputed="(select privilege_id from PRIVILEGE where name = 'VIEW_USER')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="ROLE_PRIVILEGE">
+			<column name="ROLE_ID" valueComputed="(select role_id from ROLE where name = 'ROLE_USER')"/>
+			<column name="PRIVILEGE_ID" valueComputed="(select privilege_id from PRIVILEGE where name = 'VIEW_USER')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="ROLE_PRIVILEGE">
+			<column name="ROLE_ID" valueComputed="(select role_id from ROLE where name = 'ROLE_SUPER_ADMIN')"/>
+			<column name="PRIVILEGE_ID" valueComputed="(select privilege_id from PRIVILEGE where name = 'ALL_USER')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="ROLE_PRIVILEGE">
+			<column name="ROLE_ID" valueComputed="(select role_id from ROLE where name = 'ROLE_VENDOR')"/>
+			<column name="PRIVILEGE_ID" valueComputed="(select privilege_id from PRIVILEGE where name = 'ALL_USER')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+		<insert tableName="ROLE_PRIVILEGE">
+			<column name="ROLE_ID" valueComputed="(select role_id from ROLE where name = 'ROLE_ADMIN')"/>
+			<column name="PRIVILEGE_ID" valueComputed="(select privilege_id from PRIVILEGE where name = 'ALL_USER')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+        <rollback>
+            <delete tableName="ROLE_PRIVILEGE"/>
+        </rollback>
+    </changeSet>	
+	<changeSet id="1.16" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="PASSWORD_RESET_TOKEN" />
+			</not>
+		</preConditions>
+		<createTable tableName="PASSWORD_RESET_TOKEN" remarks="Table to store password reset tokens for users">
+			<column name="PASSWORD_RESET_TOKEN_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_PASSWORD_RESET_TOKEN" nullable="false" />
+			</column>
+			<column name="USER_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_PR_USER_ID" references="USER_ACCOUNT(USER_ID)" deleteCascade="true" />
+			</column>
+			<column name="TOKEN" type="VARCHAR(60)" remarks="UUID.randomUUID()">
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="EXPIRY_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>		
+	</changeSet>
+	<changeSet id="1.17" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="USER_VERIFICATION_CODE" />
+			</not>
+		</preConditions>
+		<createTable tableName="USER_VERIFICATION_CODE" remarks="Table to store user verification codes for users">
+			<column name="USER_VERIFICATION_CODE_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_USER_VERIFICATION_CODE" nullable="false" />
+			</column>
+			<column name="USER_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_UV_USER_ID" references="USER_ACCOUNT(USER_ID)" deleteCascade="true" />
+			</column>
+			<column name="VERIFICATION_CODE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="EXPIRY_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>		
+	</changeSet>
+	<changeSet id="1.18" author="vijay">
+		<preConditions onFail="MARK_RAN">
+				<columnExists columnName="TOKEN" tableName="PASSWORD_RESET_TOKEN"/>
+		</preConditions>	
+		<modifyDataType columnName="TOKEN"
+            			newDataType="VARCHAR(64)"
+            			tableName="PASSWORD_RESET_TOKEN"/>
+            
+		<rollback>
+			<modifyDataType columnName="TOKEN"
+            				newDataType="VARCHAR(32)"
+            				tableName="PASSWORD_RESET_TOKEN"/>
+		</rollback>
+	</changeSet>	
+	<changeSet id="1.19" author="vijay">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(1) from ROLE_PRIVILEGE rp where rp.role_id = (select r.role_id from ROLE r where r.name = 'ROLE_USER') and rp.privilege_id = (select p.privilege_id from privilege p where p.name = 'EDIT_USER')</sqlCheck>
+        </preConditions>
+		<insert tableName="ROLE_PRIVILEGE">
+			<column name="ROLE_ID" valueComputed="(select role_id from ROLE where name = 'ROLE_USER')"/>
+			<column name="PRIVILEGE_ID" valueComputed="(select privilege_id from PRIVILEGE where name = 'EDIT_USER')"/>
+			<column name="CREATED_DATE" valueNumeric="${nowUnixTimestamp}"/>
+		</insert>
+        <rollback>
+            <delete tableName="ROLE_PRIVILEGE">
+            	<where>role_id = (select r.role_id from ROLE r where r.name = 'ROLE_USER') and privilege_id = (select p.privilege_id from privilege p where p.name = 'EDIT_USER')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

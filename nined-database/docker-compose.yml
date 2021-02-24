@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  nined-db:
+    image: chanvis/nined-database:8.0.16
+    build:
+      context: nined-database
+    restart: always
+    container_name: nined-mysql
+    environment:
+       - MYSQL_ROOT_PASSWORD=root
+       - MYSQL_DATABASE=nined_db
+       - MYSQL_USER=admin
+       - MYSQL_PASSWORD=adminpw
+    ports:
+       # <Port exposed> : < MySQL Port running inside container>
+       - 3306:3306
+    expose:
+       # Opens port 3306 on the container:q:
+       - '3306'
+    volumes:
+       - /var/lib/mysql/nined:/var/lib/mysql
+    networks:
+       - ninedDatabase       
+    healthcheck:
+       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+       interval: 30s
+       timeout: 10s
+       retries: 6
+       
+       
+  nined-lb:
+    image: chanvis/nined-liquibase:mysql
+    build:
+      context: nined-liquibase
+    restart: "no"
+    container_name: nined-liquibase
+    command: update
+    environment:
+       - LIQUIBASE_URL=jdbc:mysql://nined-db:3306/nined_db?rewriteBatchedStatements=true&useSSL=false&allowPublicKeyRetrieval=true
+       - LIQUIBASE_DRIVER=com.mysql.cj.jdbc.Driver
+       - LIQUIBASE_CLASSPATH=/liquibase/jdbc/mysql-connector-java-8.0.15.jar
+       - LIQUIBASE_USERNAME=admin 
+       - LIQUIBASE_PASSWORD=adminpw
+       - LIQUIBASE_CHANGELOG=/liquibase/changelog/nined-db-changelog-master.xml
+    networks:
+       - ninedDatabase
+
+# Networks to be created to facilitate communication between containers
+# Networks to be created to facilitate communication between containers
+networks:
+   ninedDatabase:
+     external:
+       name: ninedDatabase
+
+volumes:
+    persistent:

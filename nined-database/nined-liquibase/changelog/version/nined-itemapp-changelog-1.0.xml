@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+	<property name="autoIncrement" value="true" dbms="mysql" />
+	<property name="autoIncrement" value="true" dbms="h2" />
+	<property name="autoIncrement" value="false" dbms="oracle" />
+	<property name="now" value="SYSTIMESTAMP" dbms="oracle" />
+	<property name="now" value="CURRENT_TIMESTAMP" dbms="mysql" />
+	<property name="nowUnixTimestamp" value="unix_timestamp()" dbms="mysql" />
+	<property name="now" value="CURRENT_TIMESTAMP" dbms="h2" />
+
+	<changeSet id="1.3.1" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ITEM" />
+			</not>
+		</preConditions>
+		<createTable tableName="ITEM" remarks="Table for Product entity">
+			<column name="ITEM_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ITEM" nullable="false" />
+			</column>
+			<column name="PARTNUMBER" type="VARCHAR(128)" remarks="Unique Partnumber of the Item">
+				<constraints nullable="false" />
+			</column>
+			<column name="ITEM_TYPE" type="VARCHAR(512)" remarks="Parent Item or Child Item">
+				<constraints nullable="false" />
+			</column>
+			<column name="ACTIVE" type="TINYINT"  defaultValueNumeric="1">
+				<constraints nullable="false" />
+			</column>
+			<column name="BUYABLE" type="BIGINT" defaultValueNumeric="1">
+				<constraints nullable="false" />
+			</column>			
+			<column name="START_DATE" type="BIGINT">
+				<constraints nullable="true" />
+			</column>
+			<column name="END_DATE" type="BIGINT">
+				<constraints nullable="true" />
+			</column>
+			<column name="AVAILABILITYDATE" type="BIGINT" remarks="Date that the product is available to customers for purchase">
+				<constraints nullable="true" />
+			</column>
+			<column name="DISCONTINUEDATE" type="BIGINT" remarks="The date when the product is discontinued. For example, 
+			this date can be the date the manufacturer stops producing the product, or the date your store stops selling the product">
+				<constraints nullable="true" />
+			</column>			
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="ITEM_ID,PARTNUMBER" constraintName="UK_ITEM" tableName="ITEM" />		
+	</changeSet>
+	
+	<changeSet id="1.3.2" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ITEM_DSC" />
+			</not>
+		</preConditions>
+		<createTable tableName="ITEM_DSC" remarks="Table to persist item description to be displayed">
+			<column name="ITEM_DSC_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ITEM_DSC" nullable="false" />
+			</column>
+			<column name="ITEM_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_ID_ITEM_ID" references="ITEM(ITEM_ID)" deleteCascade="true"/>
+			</column>
+			<column name="LANGUAGE_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_ID_LANGUAGE_ID" references="LANGUAGE(LANGUAGE_ID)" deleteCascade="true"/>
+			</column>
+			<column name="NAME" type="VARCHAR(254)">
+				<constraints nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="ITEM_ID,LANGUAGE_ID" constraintName="UK_ITEM_DSC" tableName="ITEM_DSC" />		
+	</changeSet>
+	<changeSet id="1.3.3" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ITEM_REL" />
+			</not>
+		</preConditions>
+		<createTable tableName="ITEM_REL" remarks="Table to store all relationship of Item data between Parent and Child">
+			<column name="ITEM_REL_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ITEM_REL" nullable="false" />
+			</column>
+			<column name="ITEM_ID_PARENT" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_IR_ITEM_ID_PARENT" references="ITEM(ITEM_ID)" deleteCascade="true"/>
+			</column>
+			<column name="ITEM_ID_CHILD" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_IR_ITEM_ID_CHILD" references="ITEM(ITEM_ID)" deleteCascade="true"/>
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="ITEM_ID_PARENT,ITEM_ID_CHILD" constraintName="UK_ITEM_REL" tableName="ITEM_REL" />				
+	</changeSet>
+	
+	<changeSet id="1.3.4" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ATTR" />
+			</not>
+		</preConditions>
+		<createTable tableName="ATTR" remarks="Table to store all attributes with name value pair required for an item">
+			<column name="ATTR_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ATTR" nullable="false" />
+			</column>
+			<column name="NAME" type="VARCHAR(254)">
+				<constraints unique="true" uniqueConstraintName="UK_ATTR_NAME" nullable="false" />
+			</column>
+			<column name="VALUE" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>
+			<column name="LANGUAGE_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_AT_LANGUAGE_ID" references="LANGUAGE(LANGUAGE_ID)" deleteCascade="true"/>
+			</column>			
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="NAME,LANGUAGE_ID" constraintName="UK_ATTR" tableName="ATTR" />				
+	</changeSet>
+	<changeSet id="1.3.5" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ITEM_ATTR" />
+			</not>
+		</preConditions>
+		<createTable tableName="ITEM_ATTR" remarks="Table to store all mapping of attributes to an item/product">
+			<column name="ITEM_ATTR_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ITEM_ATTR" nullable="false" />
+			</column>
+			<column name="ITEM_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_IA_ITEM_ID_PARENT" references="ITEM(ITEM_ID)" deleteCascade="true"/>
+			</column>
+			<column name="ATTR_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_IA_ATTR_ID" references="ATTR(ATTR_ID)" deleteCascade="true"/>
+			</column>		
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="ITEM_ID, ATTR_ID" constraintName="UK_ITEM_ATTR" tableName="ITEM_ATTR" />				
+	</changeSet>	
+	<changeSet id="1.3.6" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="VENDOR" />
+			</not>
+		</preConditions>
+		<createTable tableName="VENDOR" remarks="Table to store Vendor Details">
+			<column name="VENDOR_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_VENDOR" nullable="false" />
+			</column>
+			<column name="IDENTIFIER" type="VARCHAR(128)" remarks="Identifier for the Vendor">
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="VENDOR_ID, IDENTIFIER" constraintName="UK_VENDOR" tableName="VENDOR" />				
+	</changeSet>	
+	<changeSet id="1.3.7" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="VENDOR_DSC" />
+			</not>
+		</preConditions>
+		<createTable tableName="VENDOR_DSC" remarks="Table to store Vendor Details, Name and Description">
+			<column name="VENDOR_DSC_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_VENDOR_DSC" nullable="false" />
+			</column>
+			<column name="VENDOR_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_VD_VENDOR_ID" references="VENDOR(VENDOR_ID)" deleteCascade="true"/>
+			</column>
+			<column name="LANGUAGE_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_VD_LANGUAGE_ID" references="LANGUAGE(LANGUAGE_ID)" deleteCascade="true"/>
+			</column>
+			<column name="NAME" type="VARCHAR(254)">
+				<constraints nullable="false" />
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>			
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="VENDOR_ID,LANGUAGE_ID" constraintName="UK_VENDOR_DSC" tableName="VENDOR_DSC" />				
+	</changeSet>
+	<changeSet id="1.3.8" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ITEM_VENDOR" />
+			</not>
+		</preConditions>			
+		<createTable tableName="ITEM_VENDOR" remarks="Table to manage the mapping between Vendor and Item">
+			<column name="ITEM_VENDOR_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ITEM_VENDOR" nullable="false" />
+			</column>
+			<column name="VENDOR_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_IV_VENDOR_ID" references="VENDOR(VENDOR_ID)" deleteCascade="true"/>
+			</column>
+			<column name="ITEM_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_IV_ITEM_ID" references="ITEM(ITEM_ID)" deleteCascade="true"/>
+			</column>			
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="VENDOR_ID, ITEM_ID" constraintName="UK_ITEM_VENDOR" tableName="ITEM_VENDOR" />				
+	</changeSet>	
+	<changeSet id="1.3.9" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ITEM_PRICE" />
+			</not>
+		</preConditions>			
+		<createTable tableName="ITEM_PRICE" remarks="Table to manage the price of products/items">
+			<column name="ITEM_PRICE_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ITEM_PRICE_ID" nullable="false" />
+			</column>
+			<column name="ITEM_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_IP_ITEM_ID" references="ITEM(ITEM_ID)" deleteCascade="true"/>
+			</column>
+			<column name="PRICE_TYPE" type="VARCHAR(128)" remarks="Price type such as Offer-Price and List-Price">
+				<constraints nullable="false" />
+			</column>						
+			<column name="CURRENCY" type="VARCHAR(128)" remarks="Price currency INR or USD">
+				<constraints nullable="false" />
+			</column>
+			<column name="PRICE" type="DECIMAL(20,2)" remarks="Price of the item">
+				<constraints nullable="false" />
+			</column>
+			<column name="ACTIVE" type="TINYINT"  defaultValueNumeric="1">
+				<constraints nullable="false" />
+			</column>			
+			<column name="START_DATE" type="BIGINT">
+				<constraints nullable="true" />
+			</column>
+			<column name="END_DATE" type="BIGINT">
+				<constraints nullable="true" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet id="1.3.10" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="ITEM_INVENTORY" />
+			</not>
+		</preConditions>			
+		<createTable tableName="ITEM_INVENTORY" remarks="Table to manage the price of products/items">
+			<column name="ITEM_INVENTORY_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_ITEM_INVENTORY_ID" nullable="false" />
+			</column>
+			<column name="ITEM_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_II_ITEM_ID" references="ITEM(ITEM_ID)" deleteCascade="true"/>
+			</column>
+			<column name="FULFILLMENT_TYPE" type="VARCHAR(128)" remarks="Fulfillment type such as In-Store or Online">
+				<constraints nullable="false" />
+			</column>
+			<column name="STORE_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_II_STORE_ID" references="STORE(STORE_ID)" deleteCascade="true"/>
+			</column>									
+			<column name="QUANTITY" type="DECIMAL(20,2)" remarks="Quantity of the item">
+				<constraints nullable="false" />
+			</column>
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="ITEM_ID, FULFILLMENT_TYPE, STORE_ID" constraintName="UK_ITEM_INVENTORY" tableName="ITEM_INVENTORY" />				
+	</changeSet>
+	<changeSet id="1.3.11" author="vijay">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="CATEGORY_ITEM" />
+			</not>
+		</preConditions>			
+		<createTable tableName="CATEGORY_ITEM" remarks="Table to manage the mapping of products/items with category ">
+			<column name="CATEGORY_ITEM_ID" type="BIGINT" autoIncrement="${autoIncrement}">
+				<constraints primaryKey="true" primaryKeyName="PK_CATEGORY_ITEM_ID" nullable="false" />
+			</column>
+			<column name="ITEM_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_CI_ITEM_ID" references="ITEM(ITEM_ID)" deleteCascade="true"/>
+			</column>
+			<column name="CATEGORY_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_CI_CATEGORY_ID" references="CATEGORY(CATEGORY_ID)" deleteCascade="true"/>
+			</column>
+			<column name="CATALOG_ID" type="BIGINT">
+				<constraints nullable="true" foreignKeyName="FK_CI_CATALOG_ID" references="CATALOG(CATALOG_ID)" deleteCascade="true"/>
+			</column>									
+			<column name="CREATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="LASTUPDATED_DATE" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint columnNames="ITEM_ID, CATEGORY_ID, CATALOG_ID" constraintName="UK_CATEGORY_ITEM" tableName="CATEGORY_ITEM" />				
+	</changeSet>				
+	<changeSet id="1.3.12" author="vijay">
+		<sql>
+			GRANT ALL ON ITEM TO 'userapp';
+			GRANT ALL ON ITEM_DSC TO 'userapp';
+			GRANT ALL ON ITEM_REL TO 'userapp';
+			GRANT ALL ON ATTR TO 'userapp';
+			GRANT ALL ON ITEM_ATTR TO 'userapp';
+			GRANT ALL ON VENDOR TO 'userapp';
+			GRANT ALL ON VENDOR_DSC TO 'userapp';
+			GRANT ALL ON ITEM_VENDOR TO 'userapp';
+			GRANT ALL ON ITEM_PRICE TO 'userapp';		
+			GRANT ALL ON ITEM_INVENTORY TO 'userapp';
+			GRANT ALL ON CATEGORY_ITEM TO 'userapp';
+		</sql>
+		<rollback>
+			REVOKE ALL ON ITEM TO 'userapp';
+			REVOKE ALL ON ITEM_DSC TO 'userapp';
+			REVOKE ALL ON ITEM_REL TO 'userapp';
+			REVOKE ALL ON ATTR TO 'userapp';
+			REVOKE ALL ON ITEM_ATTR TO 'userapp';
+			REVOKE ALL ON VENDOR TO 'userapp';
+			REVOKE ALL ON VENDOR_DSC TO 'userapp';
+			REVOKE ALL ON ITEM_VENDOR TO 'userapp';
+			REVOKE ALL ON ITEM_PRICE TO 'userapp';
+			REVOKE ALL ON ITEM_INVENTORY TO 'userapp';
+			REVOKE ALL ON CATEGORY_ITEM TO 'userapp';
+		</rollback>
+	</changeSet>
+</databaseChangeLog>

@@ -1,0 +1,91 @@
+version: '3'
+
+services:
+  nined-nginx:
+     container_name: nined-nginx
+     image: nginx:1.17
+     restart: always
+     ports:
+       - 9000:80
+       - 9003:443
+     volumes:
+       - ./nginx/conf.d:/etc/nginx/conf.d
+     networks:
+       - ninedService
+       
+  nined-service-discovery:
+     image: chanvis/nined-service-discovery:latest
+     build:
+      context: nined-service-discovery
+     restart: always
+     ports:
+       - 8761:8761
+     volumes:
+       - /var/log/nined:/app/log
+     networks:
+       - ninedService
+     healthcheck:
+       test: ["CMD-SHELL", "curl -fs --header 'Accept: application/json' localhost:8761/actuator/health || exit 1"]
+       interval: 30s
+       timeout: 5s
+       retries: 6
+
+  nined-api-gateway:
+     image: chanvis/nined-api-gateway:latest
+     build:
+      context: nined-api-gateway
+     restart: on-failure
+     environment:
+       - JAVA_OPTS=
+         -DEUREKA_SERVER=http://nined-service-discovery:8761/eureka
+       - SECURITY_JWT_SECRET=8QRxB7n0hp4uL5NxxDEswqnhWzIm05WRSG6yDnoL41Dm96FTEwjpGnd6BylIJoj
+     depends_on:
+       - nined-service-discovery
+     volumes:
+       - /var/log/nined:/app/log
+     networks:
+       - ninedService
+     healthcheck:
+       test: ["CMD-SHELL", "curl -fs --header 'Accept: application/json' localhost:8765/actuator/health || exit 1"]
+       interval: 30s
+       timeout: 5s
+       retries: 6
+
+  nined-user-service:
+     image: chanvis/nined-user-service:latest
+     build:
+      context: nined-user-service
+     environment:
+       - JAVA_OPTS=
+         -DEUREKA_SERVER=http://nined-service-discovery:8761/eureka
+       - SECURITY_JWT_SECRET=8QRxB7n0hp4uL5NxxDEswqnhWzIm05WRSG6yDnoL41Dm96FTEwjpGnd6BylIJoj
+       - SPRING_DATASOURCE_URL=jdbc:mysql://nined-db:3306/nined_db
+       - SPRING_DATASOURCE_USERNAME=userapp
+       - SPRING_DATASOURCE_PASSWORD=userapppw
+       - PROVIDER_ADMIN_LOGONID=pvadmin
+       - PROVIDER_ADMIN_PASSWORD=qnhWzI05SG6y
+       - PROVIDER_ADMIN_EMAIL=vijay@visham.co
+       - SPRING_MAIL_USERNAME=postmaster@sandboxc8034750705d42fcbbd78bc0260a89cf.mailgun.org
+       - SPRING_MAIL_PASSWORD=7c73ac25f2fe8f655f6e87cd097cbd38-8b34de1b-28751441
+       - UI_APP_URL_SET-USER-CRED=http://localhost:8000/login-ui/user-cred
+       - UI_APP_URL_RESET-PASSWORD=http://localhost:8000/login-ui/reset-password
+     depends_on:
+       - nined-service-discovery
+     volumes:
+       - /var/log/contra:/app/log
+     networks:
+       - ninedService
+       - ninedDatabase
+     healthcheck:
+       test: ["CMD-SHELL", "curl -fs --header 'Accept: application/json' localhost:8762/actuator/health || exit 1"]
+       interval: 30s
+       timeout: 5s
+       retries: 6
+       
+#Networks to be created to facilitate communication between containers
+networks:
+ ninedService:
+   driver: bridge
+ ninedDatabase:
+   external:
+     name: ninedDatabase

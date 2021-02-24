@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/nined-api/nined-api-gateway/api-gateway.iml" filepath="$PROJECT_DIR$/nined-api/nined-api-gateway/api-gateway.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nined-api/nined-service-discovery/service-discovery.iml" filepath="$PROJECT_DIR$/nined-api/nined-service-discovery/service-discovery.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nined-api/nined-user-service/user-service.iml" filepath="$PROJECT_DIR$/nined-api/nined-user-service/user-service.iml" />
+    </modules>
+  </component>
+</project>
